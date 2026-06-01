@@ -56,7 +56,10 @@ class UchardetHolder {
 
     const char* get_charset()
     {
-        return uchardet_get_charset( ud_ );
+        if ( uchardet_get_n_candidates( ud_ ) > 0 ) {
+            return uchardet_get_encoding( ud_, 0 );
+        }
+        return "";
     }
 
   private:

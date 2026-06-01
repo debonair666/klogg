@@ -67,6 +67,7 @@
 #include <QMessageBox>
 #include <QMimeData>
 #include <QProgressDialog>
+#include <QRegularExpression>
 #include <QResource>
 #include <QScreen>
 #include <QShortcut>
@@ -175,6 +176,9 @@ MainWindow::MainWindow( WindowSession session )
     signalMux_.connect( SIGNAL( replaceDataInScratchpad( QString ) ), this,
                         SLOT( replaceDataInScratchpad( QString ) ) );
 
+    signalMux_.connect( SIGNAL( lineTextForPreview( const QString& ) ), this,
+                        SLOT( updatePreviewPanel( const QString& ) ) );
+
     // Register for progress status bar
     signalMux_.connect( SIGNAL( loadingProgressed( int ) ), this,
                         SLOT( updateLoadingProgress( int ) ) );
@@ -230,6 +234,10 @@ MainWindow::MainWindow( WindowSession session )
     central_widget->setLayout( main_layout );
 
     setCentralWidget( central_widget );
+
+    // Register preview dock on the right side (hidden by default)
+    addDockWidget( Qt::RightDockWidgetArea, previewDock_ );
+    previewDock_->hide();
 
     updateTitleBar( "" );
     loadIcons();
@@ -664,6 +672,18 @@ void MainWindow::createActions()
     connect( predefinedFiltersDialogAction, &QAction::triggered, this,
              [ this ]( auto ) { this->editPredefinedFilters(); } );
 
+    // Create preview dock widget
+    previewTextEdit_ = new QTextEdit( this );
+    previewTextEdit_->setReadOnly( true );
+    previewTextEdit_->setPlaceholderText( tr( "Select a line in the log view to preview it here" ) );
+    previewTextEdit_->setWordWrapMode( QTextOption::WrapAnywhere );
+    previewDock_ = new QDockWidget( tr( "Line Preview" ), this );
+    previewDock_->setObjectName( "previewDock" );
+    previewDock_->setAllowedAreas( Qt::RightDockWidgetArea | Qt::LeftDockWidgetArea );
+    previewDock_->setWidget( previewTextEdit_ );
+    showPreviewAction = previewDock_->toggleViewAction();
+    showPreviewAction->setText( tr( "&Line preview" ) );
+
     updateShortcuts();
 }
 
@@ -789,6 +809,8 @@ void MainWindow::createMenus()
     viewMenu->addSeparator();
     viewMenu->addAction( lineNumbersVisibleInMainAction );
     viewMenu->addAction( lineNumbersVisibleInFilteredAction );
+    viewMenu->addSeparator();
+    viewMenu->addAction( showPreviewAction );
     viewMenu->addSeparator();
     viewMenu->addAction( textWrapAction );
     viewMenu->addSeparator();
@@ -1272,6 +1294,17 @@ void MainWindow::replaceDataInScratchpad( QString newData )
 {
     scratchPad_.replaceData( newData );
     showScratchPad();
+}
+
+void MainWindow::updatePreviewPanel( const QString& text )
+{
+    if ( previewTextEdit_ ) {
+        // Strip ANSI escape sequences for clean display
+        static const QRegularExpression ansiEscape( "\\x1B\\[[0-9;]*[mK]" );
+        QString cleanText = text;
+        cleanText.remove( ansiEscape );
+        previewTextEdit_->setPlainText( cleanText );
+    }
 }
 
 void MainWindow::encodingChanged( QAction* action )

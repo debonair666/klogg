@@ -181,6 +181,9 @@ class CrawlerWidget : public QSplitter,
     // available) has changed
     void dataStatusChanged( DataStatus status );
 
+    // Sent when a line is selected in the main view, contains the full line text
+    void lineTextForPreview( const QString& text );
+
     // Sent up when the current filtered view has been changed
     void filteredViewChanged();
 
@@ -265,6 +268,9 @@ class CrawlerWidget : public QSplitter,
     void addColorLabelToSelection( size_t label );
     void addNextColorLabelToSelection();
     void clearColorLabels();
+
+    // Called when the main view selects a line, to update preview
+    void onMainViewNewSelection( LineNumber line );
 
     void changeFilteredView(int tabIndex);
     void closeFilteredView(int tabIndex);
