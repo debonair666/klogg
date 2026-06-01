@@ -39,10 +39,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QDockWidget>
 #include <QMainWindow>
 #include <QMenu>
 #include <QSystemTrayIcon>
 #include <QTemporaryDir>
+#include <QTextEdit>
 
 #include <QTranslator>
 #include <array>
@@ -172,6 +174,9 @@ class MainWindow : public QMainWindow {
     // and confirm it.
     void changeQFPattern( const QString& newPattern );
 
+    // Update the right-side preview panel with the selected line text
+    void updatePreviewPanel( const QString& text );
+
   Q_SIGNALS:
     // Is emitted when new settings must be used
     void optionsChanged();
@@ -282,6 +287,10 @@ class MainWindow : public QMainWindow {
     QAction* addToFavoritesAction;
     QAction* addToFavoritesMenuAction;
     QAction* removeFromFavoritesAction;
+
+    QAction* showPreviewAction;
+    QDockWidget* previewDock_;
+    QTextEdit* previewTextEdit_;
     QAction* selectOpenFileAction;
     QAction* recentFilesCleanup;
     QActionGroup* favoritesGroup;

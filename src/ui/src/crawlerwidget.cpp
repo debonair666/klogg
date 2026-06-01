@@ -935,6 +935,13 @@ void CrawlerWidget::activityDetected()
     changeDataStatus( DataStatus::OLD_DATA );
 }
 
+void CrawlerWidget::onMainViewNewSelection( LineNumber line )
+{
+    if ( logData_ ) {
+        Q_EMIT lineTextForPreview( logData_->getLineString( line ) );
+    }
+}
+
 void CrawlerWidget::setSearchLimits( LineNumber startLine, LineNumber endLine )
 {
     searchStartLine_ = startLine;
@@ -1205,6 +1212,8 @@ void CrawlerWidget::setup()
 
     connect( logMainView_, &LogMainView::newSelection,
              [ this ]( auto ) { logMainView_->update(); } );
+    connect( logMainView_, &LogMainView::newSelection,
+             this, &CrawlerWidget::onMainViewNewSelection );
 
     connect( logMainView_, &LogMainView::newSelection, this,
              &CrawlerWidget::updateLineNumberHandler );
